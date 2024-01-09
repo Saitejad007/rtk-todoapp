@@ -1,7 +1,23 @@
+"use client";
+
 import Image from "next/image";
 import styles from "./page.module.css";
+import { useDispatch } from "react-redux";
+import { useState } from "react";
+import { addTodo } from "./lib/redux/slices/todoSlice";
 
 export default function Home() {
+  const [value, setValue] = useState("");
+  const dispatch = useDispatch();
+
+  const handleInput = (e: any) => {
+    setValue(e.target.value);
+  };
+
+  const handleAddTodo = () => {
+    dispatch(addTodo(value));
+  };
+
   return (
     <main className={styles.main}>
       <div className={styles.description}>
@@ -28,8 +44,8 @@ export default function Home() {
         </div>
       </div>
       <div>
-        <input type="text" />
-        <button>Submit</button>
+        <input type="text" onClick={handleInput} />
+        <button onClick={handleAddTodo}>Add +</button>
       </div>
       <div></div>
     </main>
