@@ -2,13 +2,33 @@
 
 import Image from "next/image";
 import styles from "./page.module.css";
-import { useDispatch } from "react-redux";
-import { useState } from "react";
-import { addTodo } from "./lib/redux/slices/todoSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { useEffect, useState } from "react";
+import { addTodo, editTodo, removeTodo } from "./lib/redux/slices/todoSlice";
 
 export default function Home() {
   const [value, setValue] = useState("");
+  const [isEdit, setIsEdit] = useState("");
+  const [editValue, setEditValue] = useState({
+    id: "",
+    content: "",
+  });
   const dispatch = useDispatch();
+  const todoList = useSelector((state: any) => state.todo.todoList);
+
+  useEffect(() => {
+    if (isEdit) {
+      setEditValue({
+        id: isEdit,
+        content: todoList.find((item: any) => item.id === isEdit).content,
+      });
+    } else {
+      setEditValue({
+        id: "",
+        content: "",
+      });
+    }
+  }, [isEdit]);
 
   const handleInput = (e: any) => {
     setValue(e.target.value);
@@ -16,6 +36,32 @@ export default function Home() {
 
   const handleAddTodo = () => {
     dispatch(addTodo(value));
+    setValue("");
+  };
+
+  const handleDeleteTodo = (id: number) => {
+    dispatch(removeTodo(id));
+  };
+
+  const handleEditTodo = (id: string) => {
+    setIsEdit(id);
+  };
+
+  const handleEditField = (id: string, e: any) => {
+    setEditValue({
+      ...editValue,
+      id,
+      content: e.target.value,
+    });
+  };
+
+  const handleUpdateTodo = () => {
+    dispatch(editTodo(editValue));
+    setIsEdit("");
+  };
+
+  const handleCancelUpdate = () => {
+    setIsEdit("");
   };
 
   return (
@@ -44,10 +90,44 @@ export default function Home() {
         </div>
       </div>
       <div>
-        <input type="text" onClick={handleInput} />
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => handleInput(e)}
+          onKeyDown={(e) => {
+            // @ts-expect-error
+            e.keyCode == "13" && handleAddTodo();
+          }}
+        />
         <button onClick={handleAddTodo}>Add +</button>
       </div>
-      <div></div>
+      <div>
+        <ul>
+          {todoList.map((item: any, index: number) => (
+            <li key={item.id}>
+              {isEdit !== item.id ? (
+                <>
+                  <p>{item.content}</p>
+                  <button onClick={() => handleDeleteTodo(item.id)}>
+                    delete
+                  </button>
+                  <button onClick={() => handleEditTodo(item.id)}>edit</button>
+                </>
+              ) : (
+                <>
+                  <input
+                    type="text"
+                    value={editValue.content}
+                    onChange={(e) => handleEditField(item.id, e)}
+                  />
+                  <button onClick={handleUpdateTodo}>update</button>
+                  <button onClick={handleCancelUpdate}>cancel</button>
+                </>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
     </main>
   );
 }

@@ -28,8 +28,22 @@ export const todoSlice = createSlice({
       };
       state.todoList.push(newList);
     },
+    removeTodo: (state, action) => {
+      state.todoList = state.todoList.filter(
+        (todo) => todo.id !== action.payload
+      );
+    },
+    editTodo: (state, action) => {
+      const { id, content } = action.payload;
+      state.todoList = state.todoList.map((todo) => {
+        if (todo.id === id) {
+          todo.content = content;
+        }
+        return todo;
+      });
+    },
   },
 });
 
-export const { addTodo } = todoSlice.actions;
+export const { addTodo, removeTodo, editTodo } = todoSlice.actions;
 export default todoSlice.reducer;
