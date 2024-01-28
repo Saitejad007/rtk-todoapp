@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import styles from "../auth.module.css";
 import { useRouter } from "next/navigation";
+import axios from "axios";
 
 const Login = () => {
   const router = useRouter();
@@ -10,9 +11,20 @@ const Login = () => {
     email: "",
     password: "",
   });
-  const handleLogin = () => {
-    console.log("User", user);
-    // router.push("/");
+
+  const handleLogin = async () => {
+    try {
+      const res = await axios.post(
+        "http://localhost:5000/api/users/login",
+        user,
+        { withCredentials: true }
+      );
+      console.log(res.headers);
+      console.log(res.data);
+      router.push("/");
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

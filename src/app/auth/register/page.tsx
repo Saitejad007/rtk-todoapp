@@ -3,17 +3,25 @@
 import React, { useState } from "react";
 import styles from "../auth.module.css";
 import { useRouter } from "next/navigation";
+import axios from "axios";
+// import { cookies } from "next/headers";
 
 const Register = () => {
   const router = useRouter();
+  // const cookieStore = cookies();
   const [user, setUser] = useState({
-    first_name: "",
-    last_name: "",
+    firstName: "",
+    lastName: "",
     email: "",
     password: "",
   });
-  const handleLogin = () => {
+  const handleLogin = async () => {
     console.log("User", user);
+    const res = await axios.post(
+      "http://localhost:5000/api/users/register",
+      user
+    );
+    // console.log(cookieStore.get("token"));
     // router.push("/");
   };
 
@@ -27,11 +35,11 @@ const Register = () => {
       <p>This is the login page</p>
       <div className={styles.input_div}>
         <label>First Name</label>
-        <input type="text" name="first_name" onChange={handleChange} />
+        <input type="text" name="firstName" onChange={handleChange} />
       </div>
       <div className={styles.input_div}>
         <label>Last Name</label>
-        <input type="text" name="last_name" onChange={handleChange} />
+        <input type="text" name="lastName" onChange={handleChange} />
       </div>
       <div className={styles.input_div}>
         <label>Email</label>
