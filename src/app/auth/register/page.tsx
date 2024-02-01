@@ -3,26 +3,26 @@
 import React, { useState } from "react";
 import styles from "../auth.module.css";
 import { useRouter } from "next/navigation";
-import axios from "axios";
-// import { cookies } from "next/headers";
+import { useDispatch, useSelector } from "react-redux";
+import { handleRegister } from "@/app/lib/redux/slices/authSlice";
+import { AppDispatch } from "@/app/lib/redux/store";
 
 const Register = () => {
   const router = useRouter();
-  // const cookieStore = cookies();
+  const dispatch = useDispatch<AppDispatch>();
+  const authState = useSelector((state: any) => state.authReducer);
   const [user, setUser] = useState({
     firstName: "",
     lastName: "",
     email: "",
     password: "",
   });
-  const handleLogin = async () => {
-    console.log("User", user);
-    const res = await axios.post(
-      "http://localhost:5000/api/users/register",
-      user
-    );
-    // console.log(cookieStore.get("token"));
-    // router.push("/");
+  const handleSubmit = async () => {
+    await dispatch(handleRegister({ ...user }));
+
+    if (!authState.error) {
+      router.push("/");
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -49,7 +49,12 @@ const Register = () => {
         <label>Password</label>
         <input type="password" name="password" onChange={handleChange} />
       </div>
-      <button onClick={handleLogin}>Login</button>
+      <button onClick={handleSubmit}>Login</button>
+      <div style={{ margin: "10px" }}>
+        {authState.error && (
+          <p style={{ color: "#ff0000" }}>{authState.errorMsg}</p>
+        )}
+      </div>
     </div>
   );
 };

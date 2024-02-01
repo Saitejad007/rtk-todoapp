@@ -2,28 +2,32 @@
 
 import React, { useState } from "react";
 import styles from "../auth.module.css";
-import { useRouter } from "next/navigation";
-import axios from "axios";
+import { useRouter } from "next/router";
+import { handleLogin } from "../../lib/redux/slices/authSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch } from "@/app/lib/redux/store";
 
 const Login = () => {
   const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
   const [user, setUser] = useState({
     email: "",
     password: "",
   });
 
-  const handleLogin = async () => {
-    try {
-      const res = await axios.post(
-        "http://localhost:5000/api/users/login",
-        user,
-        { withCredentials: true }
-      );
-      console.log(res.headers);
-      console.log(res.data);
+  const authState = useSelector((state: any) => state.authReducer);
+
+  const handleSubmit = async () => {
+    // Validate input fields
+    if (!user.email || !user.password) {
+      console.error("Email and password are required");
+      return;
+    }
+
+    dispatch(handleLogin({ ...user }));
+
+    if (!authState.error) {
       router.push("/");
-    } catch (err) {
-      console.log(err);
     }
   };
 
@@ -37,13 +41,18 @@ const Login = () => {
       <p>This is the login page</p>
       <div className={styles.input_div}>
         <label>Email</label>
-        <input type="text" name="email" onChange={handleChange} />
+        <input type="email" name="email" onChange={handleChange} />
       </div>
       <div className={styles.input_div}>
         <label>Password</label>
         <input type="password" name="password" onChange={handleChange} />
       </div>
-      <button onClick={handleLogin}>Login</button>
+      <button onClick={handleSubmit}>Login</button>
+      <div style={{ margin: "10px" }}>
+        {authState.error && (
+          <p style={{ color: "#ff0000" }}>{authState.errorMsg}</p>
+        )}
+      </div>
     </div>
   );
 };
