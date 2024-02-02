@@ -4,30 +4,35 @@ import Image from "next/image";
 import styles from "./page.module.css";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
-import { createTodo, deleteTodo, getTodos } from "./lib/redux/slices/todoSlice";
+import {
+  createTodo,
+  deleteTodo,
+  getTodos,
+  updateTodo,
+} from "./lib/redux/slices/todoSlice";
 import { AppDispatch } from "./lib/redux/store";
-// import { addTodo, editTodo, removeTodo } from "./lib/redux/slices/todoSlice";
 
 export default function Home() {
   const [value, setValue] = useState("");
   const [isEdit, setIsEdit] = useState("");
   const [editValue, setEditValue] = useState({
     id: "",
-    content: "",
+    comment: "",
   });
   const dispatch = useDispatch<AppDispatch>();
   const todoList = useSelector((state: any) => state.todoReducer.todoList);
+  const todoState = useSelector((state: any) => state.todoReducer);
 
   useEffect(() => {
     if (isEdit) {
       setEditValue({
         id: isEdit,
-        content: todoList?.find((item: any) => item.id === isEdit).content,
+        comment: todoList?.find((item: any) => item.todo_id === isEdit).comment,
       });
     } else {
       setEditValue({
         id: "",
-        content: "",
+        comment: "",
       });
     }
   }, [isEdit]);
@@ -57,12 +62,12 @@ export default function Home() {
     setEditValue({
       ...editValue,
       id,
-      content: e.target.value,
+      comment: e.target.value,
     });
   };
 
-  const handleUpdateTodo = () => {
-    dispatch(editTodo(editValue));
+  const handleUpdateTodo = async () => {
+    await dispatch(updateTodo({ ...editValue, id: parseInt(editValue.id) }));
     setIsEdit("");
   };
 
@@ -107,6 +112,11 @@ export default function Home() {
         />
         <button onClick={handleAddTodo}>Add +</button>
       </div>
+      {todoState.error && (
+        <div>
+          <p style={{ color: "#ff0000" }}>{todoState.errMsg}</p>
+        </div>
+      )}
       <div>
         <ul>
           {todoList?.map((item: any, index: number) => (
@@ -125,7 +135,7 @@ export default function Home() {
                 <>
                   <input
                     type="text"
-                    value={editValue.content}
+                    value={editValue.comment}
                     onChange={(e) => handleEditField(item.todo_id, e)}
                   />
                   <button onClick={handleUpdateTodo}>update</button>

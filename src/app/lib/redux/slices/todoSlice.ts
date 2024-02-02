@@ -3,7 +3,7 @@ import axios from "axios";
 
 interface Todo {
   todo_id: string;
-  content: string;
+  comment: string;
 }
 interface TodoState {
   todoList: Todo[];
@@ -36,8 +36,23 @@ export const createTodo = createAsyncThunk(
   }
 );
 
+export const updateTodo = createAsyncThunk(
+  `todo/update/:id`,
+  async (payload: { id: number; comment: string }) => {
+    try {
+      const res = await axios.patch(
+        `http://localhost:5000/api/todos/update-todo/${payload.id}`,
+        { comment: payload.comment }
+      );
+      return res.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+);
+
 export const deleteTodo = createAsyncThunk(
-  "todo/delete",
+  `todo/delete/:id`,
   async (payload: { id: number }) => {
     try {
       const res = await axios.delete(
@@ -59,29 +74,7 @@ const initialState: TodoState = {
 export const todoSlice = createSlice({
   name: "todo",
   initialState,
-  reducers: {
-    // addTodo: (state, action) => {
-    //   const newList = {
-    //     id: uuidv4(),
-    //     content: action.payload,
-    //   };
-    //   state.todoList.push(newList);
-    // },
-    // removeTodo: (state, action) => {
-    //   state.todoList = state.todoList.filter(
-    //     (todo) => todo.id !== action.payload
-    //   );
-    // },
-    // editTodo: (state, action) => {
-    //   const { id, content } = action.payload;
-    //   state.todoList = state.todoList.map((todo) => {
-    //     if (todo.id === id) {
-    //       todo.content = content;
-    //     }
-    //     return todo;
-    //   });
-    // },
-  },
+  reducers: {},
   extraReducers: (builder) => {
     builder.addCase(createTodo.fulfilled, (state, action) => {
       state.todoList.push(action.payload.todoItem);
@@ -102,10 +95,9 @@ export const todoSlice = createSlice({
       state.errorMsg = action.error.message || "Todo creation failed";
     });
     builder.addCase(deleteTodo.fulfilled, (state, action) => {
-      console.log("payloaddd", action.payload);
-      state.todoList = state.todoList.filter(
-        (todo) => todo.todo_id !== action.payload.deleted_id
-      );
+      state.todoList = state.todoList.filter((todo) => {
+        return todo.todo_id != action.payload.deleted_id;
+      });
       state.error = false;
       state.errorMsg = "";
     });
@@ -113,8 +105,22 @@ export const todoSlice = createSlice({
       state.error = true;
       state.errorMsg = action.error.message || "Todo creation failed";
     });
+    builder.addCase(updateTodo.fulfilled, (state, action) => {
+      console.log(action.payload);
+      state.todoList = state.todoList.map((todo) => {
+        if (todo.todo_id == action.payload.todo_id) {
+          todo.comment = action.payload.comment;
+        }
+        return todo;
+      });
+      state.error = false;
+      state.errorMsg = "";
+    });
+    builder.addCase(updateTodo.rejected, (state, action) => {
+      state.error = true;
+      state.errorMsg = action.error.message || "Todo creation failed";
+    });
   },
 });
 
-// export const { addTodo, removeTodo, editTodo } = todoSlice.actions;
 export default todoSlice.reducer;
